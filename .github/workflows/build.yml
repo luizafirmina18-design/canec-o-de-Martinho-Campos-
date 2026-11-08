@@ -6,15 +6,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: psl1ght/psl1ght:latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Instalar dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git make wget tar gzip python3 build-essential libssl-dev texinfo bison flex gettext libgmp-dev libmpfr-dev libmpc-dev
+
+      - name: Baixar toolchain PSL1GHT pronta
+        run: |
+          wget -q https://github.com/psl1ght/psl1ght/releases/download/v2.0.1/psl1ght-ppu-4.9.2.tar.gz -O psl1ght.tar.gz || echo "tentando outro link"
+          mkdir -p $HOME/psl1ght
+          tar -xzf psl1ght.tar.gz -C $HOME/psl1ght || echo "falhou descompactar, vai compilar do zero"
+          echo "PSL1GHT=$HOME/psl1ght/psl1ght" >> $GITHUB_ENV
+          echo "$HOME/psl1ght/psl1ght/ppu/bin:$HOME/psl1ght/psl1ght/host/bin" >> $GITHUB_PATH
+
       - name: Compilar
         run: |
+          export PSL1GHT=$HOME/psl1ght/psl1ght
+          export PATH=$PSL1GHT/ppu/bin:$PSL1GHT/host/bin:$PATH
           make pkg
           ls -lh *.pkg
+
       - name: Salvar PKG
         uses: actions/upload-artifact@v4
         with:
