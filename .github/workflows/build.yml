@@ -1,0 +1,22 @@
+name: Build PKG PS3
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: psl1ght/psl1ght:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar
+        run: |
+          make pkg
+          ls -lh *.pkg
+      - name: Salvar PKG
+        uses: actions/upload-artifact@v4
+        with:
+          name: canecao-pkg
+          path: "*.pkg"
